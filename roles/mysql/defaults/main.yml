@@ -1,0 +1,4 @@
+# roles/mysql/defaults/main.yml
+---
+# defaults file for mysql
+mysql_version: "8.4" # Default MySQL version to install

@@ -1,0 +1,55 @@
+# roles/nginx/tasks/main.yml
+---
+- name: Fail if not Debian/Ubuntu
+  ansible.builtin.fail:
+    msg: "This role only supports Debian/Ubuntu"
+  when: ansible_os_family != "Debian"
+- name: Install Nginx
+  block:
+    - name: Download new nginx key
+      ansible.builtin.uri:
+        url: https://nginx.org/keys/nginx_signing.key
+        return_content: true
+      register: nginx_key_content
+      check_mode: false
+    - name: Convert and save Nginx key using stdin
+      become: true
+      ansible.builtin.command:
+        cmd: gpg --dearmor --output /etc/apt/keyrings/nginx.gpg
+        stdin: "{{ nginx_key_content.content }}"
+      args:
+        creates: /etc/apt/keyrings/nginx.gpg
+    - name: Add Nginx repository on Debian/Ubuntu
+      become: true
+      ansible.builtin.apt_repository:
+        repo: >-
+          deb [signed-by=/etc/apt/keyrings/nginx.gpg]
+          http://nginx.org/packages/{{ ansible_distribution | lower }}/
+          {{ ansible_distribution_release }} nginx
+        state: present
+        filename: nginx-official
+        update_cache: true
+    - name: Install Nginx on Debian/Ubuntu latest version
+      become: true
+      # noqa package-latest
+      ansible.builtin.apt:
+        name: nginx
+        state: latest
+        update_cache: true
+      when: nginx_debian_nginx_version == ""
+    - name: Install Nginx on Debian/Ubuntu sepsific version {{ nginx_debian_nginx_version }}
+      become: true
+      ansible.builtin.apt:
+        name: nginx={{ nginx_debian_nginx_version }}
+        state: present
+        allow_downgrade: true
+        update_cache: true
+      when: nginx_debian_nginx_version != ""
+
+- name: Start and enable Nginx
+  become: true
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: true
+    daemon_reload: true

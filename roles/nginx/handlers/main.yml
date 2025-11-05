@@ -1,0 +1,11 @@
+# roles/nginx/handlers/main.yml
+---
+- name: Reload nginx
+  # Use elevated privileges for system service management
+  become: true
+  # Use systemd module to manage Nginx service
+  ansible.builtin.systemd:
+    name: nginx       # Service name
+    state: reloaded  # Ensure service is reloaded
+    enabled: true     # Enable service on boot
+  listen: "reload nginx service"

@@ -1,0 +1,57 @@
+# roles/initapps/tasks/main.yml
+---
+- name: Configure nginx for Joomla
+  become: true
+  block:
+    - name: Create sites-enabled directory
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled
+        state: directory
+        mode: '0755'
+    - name: Create sites-enabled directory
+      ansible.builtin.file:
+        path: /etc/nginx/sites-available
+        state: directory
+        mode: '0755'
+    - name: Update nginx main configuration to include sites-enabled
+      ansible.builtin.template:
+        src: "nginx.conf.j2"
+        dest: "/etc/nginx/nginx.conf"
+        mode: "0644"
+        owner: "root"
+        group: "www-data"
+      notify: reload nginx service
+    - name: Configure nginx for Joomla
+      ansible.builtin.template:
+        src: "joomla.conf.j2"
+        dest: "/etc/nginx/sites-available/joomla.conf"
+        mode: "0644"
+        owner: "root"
+        group: "www-data"
+      notify: reload nginx service
+    - name: Enable Joomla site in Nginx
+      ansible.builtin.file:
+        src: "/etc/nginx/sites-available/joomla.conf"
+        dest: "/etc/nginx/sites-enabled/joomla.conf"
+        state: link
+      notify: reload nginx service
+- name: Configure mysql for Joomla
+  become: true
+  block:
+    - name: Create Joomla database
+      community.mysql.mysql_db:
+        name: joomla
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_pass }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+    - name: Create Joomla database user
+      community.mysql.mysql_user:
+        name: "{{ initapps_joomla_database_user }}"
+        password: "{{ initapps_joomla_database_password }}"
+        host: "localhost"
+        priv: "*.*:ALL"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_pass }}"
+        login_unix_socket: /var/run/mysqld/mysqld.sock

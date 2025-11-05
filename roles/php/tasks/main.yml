@@ -1,0 +1,48 @@
+# roles/php/tasks/main.yml
+---
+# roles/php tasks main file
+# This file includes all tasks for the PHP role
+- name: Fail if not Debian/Ubuntu
+  ansible.builtin.fail:
+    msg: "This role only supports Debian/Ubuntu"
+  when: ansible_os_family != "Debian"
+- name: Install PHP and extensions
+  block:
+    - name: Install dependencies for adding repositories
+      become: true
+      ansible.builtin.apt:
+        name:
+          - lsb-release
+          - ca-certificates
+          - apt-transport-https
+          - curl
+        state: present
+        update_cache: true
+    - name: Add PHP PPA repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+        filename: ondrej-php
+    - name: Install PHP and common extensions
+      become: true
+      ansible.builtin.apt:
+        name:
+          - php{{ php_version | default("8.1") }}
+          - php{{ php_version | default("8.1") }}-cli
+          - php{{ php_version | default("8.1") }}-fpm
+          - php{{ php_version | default("8.1") }}-common
+          - php{{ php_version | default("8.1") }}-mysql
+          - php{{ php_version | default("8.1") }}-xml
+          - php{{ php_version | default("8.1") }}-curl
+          - php{{ php_version | default("8.1") }}-mbstring
+          - php{{ php_version | default("8.1") }}-zip
+          - php{{ php_version | default("8.1") }}-gd
+        state: present
+        update_cache: true
+    - name: Ensure PHP-FPM service is running and enabled
+      become: true
+      ansible.builtin.service:
+        name: php{{ php_version | default("8.1") }}-fpm
+        state: started
+        enabled: true

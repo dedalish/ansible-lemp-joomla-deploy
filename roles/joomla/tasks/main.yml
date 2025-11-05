@@ -1,0 +1,39 @@
+# roles/joomla/tasks/main.yml
+---
+# tasks file for joomla
+- name: Install unzip utility
+  become: true
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+    update_cache: true
+
+- name: Install joomla package
+  become: true
+  block:
+    - name: Download Joomla package
+      ansible.builtin.get_url:
+        url: "{{ joomla_url }}"
+        dest: "/tmp/joomla.zip"
+        mode: "0644"
+
+    - name: Create Joomla directory
+      ansible.builtin.file:
+        path: "{{ joomla_directory }}"
+        state: directory
+        mode: '0755'
+        owner: "www-data"
+        group: "www-data"
+
+    - name: Unzip Joomla package
+      ansible.builtin.unarchive:
+        src: "/tmp/joomla.zip"
+        dest: "{{ joomla_directory }}"
+        remote_src: true
+        owner: "www-data"
+        group: "www-data"
+    - name: Remove Joomla zip file
+      become: true
+      ansible.builtin.file:
+        state: absent
+        path: "/tmp/joomla.zip"

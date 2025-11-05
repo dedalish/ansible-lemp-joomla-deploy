@@ -1,0 +1,53 @@
+# roles/mysql/tasks/main.yml (полный файл)
+---
+- name: Fail if not Debian/Ubuntu
+  ansible.builtin.fail:
+    msg: "This role only supports Debian/Ubuntu"
+  when: ansible_os_family != "Debian"
+
+- name: Install PyMySQL connector
+  become: true
+  ansible.builtin.apt:
+    name: python3-pymysql
+    state: present
+    update_cache: true
+
+- name: Install MySQL 8.0 from Ubuntu
+  become: true
+  ansible.builtin.apt:
+    name: mysql-server
+    state: present
+  register: mysql_install_packages
+
+- name: Ensure MySQL service is running and enabled
+  become: true
+  ansible.builtin.systemd:
+    name: mysql
+    state: started
+    enabled: true
+
+- name: Set MySQL root password on first install
+  become: true
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: "{{ mysql_root_pass }}"
+    plugin: mysql_native_password
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  # noqa no-handler
+  when: mysql_install_packages.changed
+
+- name: Remove all anonymous MySQL users
+  become: true
+  community.mysql.mysql_user:
+    name: ''
+    host_all: true
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Remove MySQL test database
+  become: true
+  community.mysql.mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock

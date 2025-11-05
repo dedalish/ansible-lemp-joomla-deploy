@@ -1,0 +1,3 @@
+# roles/php/defaults/main.yml
+---
+php_version: "8.1" # Default PHP version to install

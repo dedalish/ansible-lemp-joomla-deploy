@@ -1,0 +1,4 @@
+# roles/initapps/defaults/main.yml
+---
+# defaults file for initapps
+initapps_joomla_database_user: admin
