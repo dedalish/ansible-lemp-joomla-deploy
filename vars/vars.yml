@@ -1,0 +1,4 @@
+---
+php_version: "8.1"
+initapps_joomla_database_password: "{{ mysql_admin_password }}"
+mysql_root_pass: "{{ mysql_root_password }}"
