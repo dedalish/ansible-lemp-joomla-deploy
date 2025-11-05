@@ -1,0 +1,15 @@
+# joomla-deploy.yml
+---
+- name: Deploy LEMP stack with Joomla
+  hosts: web01
+  become: true
+  vars_files:
+    - vaults/vault.yml
+    - vars/vars.yml
+
+  roles:
+    - role: mysql
+    - role: php
+    - role: nginx
+    - role: joomla
+    - role: initapps

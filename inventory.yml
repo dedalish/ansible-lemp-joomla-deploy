@@ -1,0 +1,11 @@
+# Ansible Inventory File
+all:
+  hosts:
+    web01:
+      ansible_host: 51.250.42.54
+      ansible_user: user
+      ansible_password: cxwhavywcu
+  children:
+    webservers:
+      hosts:
+        web01:
