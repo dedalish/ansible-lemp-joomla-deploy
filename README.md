@@ -13,7 +13,7 @@
 
 ---
 
-## 🚀 Быстрый старт
+## Быстрый старт
 
 ```bash
 # 1. Клонируйте репозиторий
@@ -102,7 +102,3 @@ vault_initapps_joomla_database_password: "your_db_password"
     - joomla
     - initapps
 ```
-
-**Порядок критичен!** Сначала MySQL, затем остальные роли.
-
-
